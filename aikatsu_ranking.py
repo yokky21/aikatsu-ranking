@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.6
 # vim: ts=4 sw=4
 
-import requests, lxml.html, json, sys, os, configparser
+import requests, lxml.html, json, sys, os, configparser, re
 from datetime import datetime
 from mastodon import *
 
@@ -15,6 +15,7 @@ name         = []
 post_summary = datetime.now().strftime("%Y-%m-%d %H:%M") + ' 現在のランキング'
 post_data    = post_summary + "\n"
 conf_select  = 'aikatsu8'
+csvfile      = 'aikatsu8.csv'
 inifile      = configparser.ConfigParser()
 inifile.read(os.path.dirname(os.path.abspath(__file__)) + '/mastodon.ini', 'UTF-8')
 
@@ -61,6 +62,16 @@ for page in range(4):
 
 for num in range(len(rank)):
     post_data += rank[num] + name[num] + "\n"
+
+
+## Create CSV file
+csv = re.sub(',*$', '', post_data.replace('\n',',')) + "\n"
+try:
+    f = open(os.path.dirname(os.path.abspath(__file__)) + '/' + csvfile, mode='a', encoding='utf-8')
+    f.write(csv)
+    f.close()
+except:
+    pass
 
 # print(post_data)
 # print(post_summary)
