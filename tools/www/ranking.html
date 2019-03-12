@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<title>aikatsu ranking</title>
+<meta name="viewport" id="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="utf-8" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+
+<canvas id="myChart"></canvas>
+
+<script type="text/javascript">
+    if(window.innerWidth <= 780) {
+        document.getElementById('viewport').setAttribute('content', 'width=' + (window.innerWidth*2) + ', initial-scale=0.5');
+        var legend_pos = 'top';
+        var aspect     = false;
+    }else{
+        var legend_pos = 'right';
+        var aspect     = true;
+    }
+
+    var ctx = document.getElementById('myChart').getContext('2d');
+    if(aspect == false) {
+        ctx.canvas.height = 1024;
+    }
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: []
+        },
+        options: {
+            tooltips: {
+                mode: 'nearest',
+                intersect: false,
+            },
+            responsive: true,
+            maintainAspectRatio: aspect,
+            scales: {
+                yAxes: [{
+                    id: "y-axis-1",
+                    type: "linear",
+                    position: "left",
+                    ticks: {
+                        reverse: true,
+                    }
+                }],
+            },
+            legend: {
+                position: legend_pos,
+            },
+            title: {
+                display: true,
+                text: 'ランキング推移',
+            },
+        }
+    });
+
+    var xmlHttpRequest = new XMLHttpRequest();
+    xmlHttpRequest.onreadystatechange = function() {
+        if(this.readyState == 4 && this.status == 200) {
+            if(this.response) {
+                myChart.data.labels = this.response.datetime;
+                for(var idol in this.response){
+                    if(idol == 'datetime') {
+                        continue;
+                    }
+                    if(!idol.indexOf('♥')){
+                        color = "rgb(255, 170, 255)";
+                    }else if(!idol.indexOf('♦ ')){
+                        color = "rgb(170, 204, 255)";
+                    }else if(!idol.indexOf('♠')){
+                        color = "rgb(221, 204, 255)";
+                    }else if(!idol.indexOf('♣')){
+                        color = "rgb(255, 221, 204)";
+                    }else{
+                        color = "rgb(0,0,0)";
+                    }
+                    var newDataset = {
+                        label: idol,
+                        type: 'line',
+                        fill: false,
+                        yAxisID: 'y-axis-1',
+                        backgroundColor: color,
+                        borderColor: color,
+                        data: this.response[idol],
+                    };
+                    myChart.data.datasets.push(newDataset);
+                }
+            myChart.update()
+            }
+        }
+    }
+
+    xmlHttpRequest.open('GET', 'http://YOUR_API_SITE/aikatsu8/', true);
+    xmlHttpRequest.responseType = 'json';
+    xmlHttpRequest.send(null);
+</script>
